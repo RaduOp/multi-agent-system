@@ -1,0 +1,6 @@
+fastapi
+pydantic_settings
+uvicorn[standard]
+langgraph
+langchain_openai
+langchain
