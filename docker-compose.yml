@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+  tools-service:
+    build: ./tools_service
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./tools_service:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - app-network
+
+  agents-service:
+    build: ./agents_service
+    ports:
+      - "8001:8001"
+    env_file:
+      - .env
+    volumes:
+      - ./agents_service:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
+    depends_on:
+      - tools-service
+    networks:
+      - app-network
+
+  frontend:
+    build: ./ui
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./ui:/app
+    command: streamlit run app/main.py \
+             --server.port=8501 \
+             --server.address=0.0.0.0 \
+             --server.runOnSave true \
+             --server.fileWatcherType poll
+    depends_on:
+      - agents-service
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
